@@ -2,26 +2,54 @@ import tkinter as tk
 import random
 from PIL import Image, ImageTk
 import os
+import pygame  # pygame 라이브러리 추가
 
+# pygame 초기화 (소리 기능 사용)
+pygame.mixer.init()
 
-# 현재 디렉토리를 기준으로 상대 경로로 설정
+# 현재 디렉토리 경로 설정 (Main 폴더 내)
 base_dir = os.path.dirname(os.path.abspath(__file__))  # 현재 파일의 경로
 img_dir = os.path.join(base_dir, 'imgs')  # 'imgs' 폴더 경로
+bgm_dir = os.path.join(base_dir, 'BGMs')  # 'BGMs' 폴더 경로
 
+# 소리 파일 경로
+bgm_file = os.path.join(bgm_dir, 'bgm.mp3')  # 배경 음악 파일
+correct_sound_file = os.path.join(bgm_dir, 'crt.wav')  # 정답 소리 파일 (crt.wav)
+wrong_sound_file = os.path.join(bgm_dir, 'wrong.wav')  # 오답 소리 파일
+
+# 배경 음악 재생 (반복 재생)
+def play_bgm():
+    pygame.mixer.music.load(bgm_file)
+    pygame.mixer.music.play(-1, 0.0)  # 무한 반복 재생 (-1)
+
+# 정답 소리 재생
+def play_correct_sound():
+    correct_sound = pygame.mixer.Sound(correct_sound_file)
+    correct_sound.play()
+
+# 오답 소리 재생
+def play_wrong_sound():
+    wrong_sound = pygame.mixer.Sound(wrong_sound_file)
+    wrong_sound.play()
+
+# 캐릭터 정보 (이미지 경로)
 characters = [
     {'name': '샤샤핑', 'image': os.path.join(img_dir, 'shasha.jpg')},
     {'name': '포실핑', 'image': os.path.join(img_dir, 'posiel.jpg')},
     {'name': '조아핑', 'image': os.path.join(img_dir, 'joah.jpg')},
-    {'name': '하츄핑', 'image': os.path.join(img_dir, 'hachu.jpg')}
+    {'name': '하츄핑', 'image': os.path.join(img_dir, 'hachu.jpg')},
+    {'name': '대용핑', 'image': os.path.join(img_dir, 'DY.jpg')},
+    {'name': '사랑핑', 'image': os.path.join(img_dir, 'sarang.jpg')},
+    {'name': '윤서핑', 'image': os.path.join(img_dir, 'YS.jpg')},
+    {'name': '의훈핑', 'image': os.path.join(img_dir, 'UH.jpg')},
 ]
-
 
 # 점수 및 오답 횟수 초기화
 score = 0
 incorrect_count = 0
 current_character = None
 question_count = 0
-total_questions = 5  # 게임의 총 문제 수
+total_questions = 10  # 게임의 총 문제 수
 time_limit = 30  # 제한 시간 (초)
 
 # 타이머 변수
@@ -56,7 +84,7 @@ def update_image():
 
     # 정답/오답 메시지 초기화
     result_label.config(text="")
-    answer_label.config(text="")
+    answer_label.config(text="")  # answer_label 초기화
 
     # 타이머 초기화
     time_left = time_limit
@@ -88,10 +116,13 @@ def check_answer():
     if user_input == current_character['name']:
         score += 1
         result_label.config(text=f"정답입니다! 현재 점수: {score}", fg="green")
+        answer_label.config(text="")  # 정답일 때는 정답 안내 안함
+        play_correct_sound()  # 정답 소리
     else:
         incorrect_count += 1
         result_label.config(text=f"오답입니다!", fg="red")
         answer_label.config(text=f"정답은 {current_character['name']}입니다.", fg="blue")  # 정답 표시
+        play_wrong_sound()  # 오답 소리
 
     # 점수와 오답 횟수 갱신
     score_label.config(text=f"점수: {score}")
@@ -120,7 +151,7 @@ def next_question():
 
 # 기본 창 설정
 root = tk.Tk()
-root.title("캐릭터 맞추기 게임")
+root.title("티니핑 맞추기")
 root.geometry("600x600")
 
 # 폰트 설정
@@ -155,7 +186,7 @@ result_label = tk.Label(root, text="", font=font_style)
 result_label.grid(row=5, column=0, columnspan=2, padx=20, pady=10)
 
 # 정답 표시 라벨 (오답일 때만 표시)
-answer_label = tk.Label(root, text="", font=font_style)
+answer_label = tk.Label(root, text="", font=font_style, fg="blue")
 answer_label.grid(row=6, column=0, columnspan=2, padx=20, pady=10)
 
 # "다음 문제" 버튼 (기본적으로 비활성화)
@@ -164,6 +195,9 @@ next_button.grid_forget()  # 처음에는 보이지 않도록 설정
 
 # 처음 이미지 및 캐릭터 업데이트
 update_image()
+
+# 배경 음악 시작
+play_bgm()
 
 # 창 실행
 root.mainloop()
